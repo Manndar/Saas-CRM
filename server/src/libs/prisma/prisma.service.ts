@@ -8,6 +8,8 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { ConfigService } from '@nestjs/config';
+import { parse } from 'pg-connection-string';
+
 // Type for Prisma client operations (works for both PrismaService and transaction clients)
 export type PrismaTransactionClient = Omit<
   PrismaClient,
@@ -21,18 +23,23 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
   private shutdownHookRegistered = false;
 
-  constructor() {
-    // const databaseUrl = configService.getOrThrow<string>('DATABASE_URL');
-    const adapter = new PrismaPg({ url: process.env.DATABASE_URL });
+  constructor(configService: ConfigService) {
+    const dbUrl = configService.getOrThrow<string>('DATABASE_URL');
+
+    // parse URL into Postgres connection parameters
+    const config = parse(dbUrl);
+    console.log("Config", config);
+    const adapter = new PrismaPg({
+      host: config.host,
+      port: Number(config.port),
+      user: config.user,
+      password: config.password,
+      database: config.database,
+      ssl: false, // or true if using production cloud DB
+    });
 
     super({ adapter });
   }
-  //   constructor(private readonly configService: ConfigService) { 
-  //   // const databaseUrl = configService.getOrThrow<string>('DATABASE_URL');
-  //   const adapter = new PrismaPg({ url: configService.getOrThrow<string>('DATABASE_URL') });
-  //   console.log('Database URL', configService.getOrThrow<string>('DATABASE_URL'));
-  //   super({ adapter });
-  // }
 
   async onModuleInit(): Promise<void> {
     try {

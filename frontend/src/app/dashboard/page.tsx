@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Container,
@@ -26,10 +26,23 @@ function DashboardContent() {
     const router = useRouter();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    const { data: user, isLoading } = useQuery<User>({
-        queryKey: ['user', 'me'],
-        queryFn: () => apiClient.getMe(),
-    });
+    // const { data: user, isLoading } = useQuery<User>({
+    //     queryKey: ['user', 'me'],
+    //     queryFn: () => apiClient.getMe(),
+    // });
+    const [user, setUser] = useState<User | null>(null);
+    useEffect(() => {
+        fetchUser();
+    }, []);
+    const isLoading = user === null;
+    const fetchUser = async () => {
+        try {
+            const user = await apiClient.getMe();
+            setUser(user);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
+    }
 
     const handleLogout = async () => {
         const tokens = getTokens();
@@ -64,7 +77,7 @@ function DashboardContent() {
             </Box>
         );
     }
-
+    console.log("User", user);
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">

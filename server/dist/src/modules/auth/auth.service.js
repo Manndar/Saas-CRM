@@ -50,6 +50,7 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 const crypto_1 = require("crypto");
 const prisma_1 = require("../../prisma");
+const app_error_1 = require("../../common/errors/app-error");
 const REFRESH_TTL_DAYS = 7;
 const SALT_ROUNDS = 12;
 let AuthService = AuthService_1 = class AuthService {
@@ -64,6 +65,14 @@ let AuthService = AuthService_1 = class AuthService {
     }
     async register(input) {
         try {
+            this.logger.log(`Register attempt for email: ${input.email}`);
+            const existing = await this.prisma.user.findUnique({
+                where: { email: input.email.toLowerCase() },
+            });
+            if (existing) {
+                this.logger.warn(`Registration failed: Email already in use - ${input.email}`);
+                throw new app_error_1.AppError('Email already in use', 409);
+            }
             this.logger.debug('Hashing password...');
             const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
             this.logger.debug('Starting transaction...');

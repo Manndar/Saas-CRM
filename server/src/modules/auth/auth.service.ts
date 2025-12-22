@@ -31,16 +31,16 @@ export class AuthService {
 
   async register(input: RegisterDto): Promise<AuthTokens> {
     try {
-      // this.logger.log(`Register attempt for email: ${input.email}`);
+      this.logger.log(`Register attempt for email: ${input.email}`);
 
-      // const existing = await this.prisma.user.findUnique({
-      //   where: { email: input.email.toLowerCase() },
-      // });
+      const existing = await this.prisma.user.findUnique({
+        where: { email: input.email.toLowerCase() },
+      });
 
-      // if (existing) {
-      //   this.logger.warn(`Registration failed: Email already in use - ${input.email}`);
-      //   throw new AppError('Email already in use', 409);
-      // }
+      if (existing) {
+        this.logger.warn(`Registration failed: Email already in use - ${input.email}`);
+        throw new AppError('Email already in use', 409);
+      }
 
       this.logger.debug('Hashing password...');
       const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);

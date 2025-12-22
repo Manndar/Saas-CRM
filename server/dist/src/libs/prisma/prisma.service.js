@@ -14,11 +14,23 @@ exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const adapter_pg_1 = require("@prisma/adapter-pg");
+const config_1 = require("@nestjs/config");
+const pg_connection_string_1 = require("pg-connection-string");
 let PrismaService = PrismaService_1 = class PrismaService extends client_1.PrismaClient {
     logger = new common_1.Logger(PrismaService_1.name);
     shutdownHookRegistered = false;
-    constructor() {
-        const adapter = new adapter_pg_1.PrismaPg({ url: process.env.DATABASE_URL });
+    constructor(configService) {
+        const dbUrl = configService.getOrThrow('DATABASE_URL');
+        const config = (0, pg_connection_string_1.parse)(dbUrl);
+        console.log("Config", config);
+        const adapter = new adapter_pg_1.PrismaPg({
+            host: config.host,
+            port: Number(config.port),
+            user: config.user,
+            password: config.password,
+            database: config.database,
+            ssl: false,
+        });
         super({ adapter });
     }
     async onModuleInit() {
@@ -58,6 +70,6 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
 exports.PrismaService = PrismaService;
 exports.PrismaService = PrismaService = PrismaService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], PrismaService);
 //# sourceMappingURL=prisma.service.js.map
