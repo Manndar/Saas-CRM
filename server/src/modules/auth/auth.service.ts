@@ -137,6 +137,36 @@ export class AuthService {
     return { success: true };
   }
 
+  async getMe(userId: string): Promise<{
+    userId: string;
+    email: string;
+    organizationId?: string;
+    role?: string;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        memberships: {
+          take: 1,
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const membership = user.memberships[0];
+
+    return {
+      userId: user.id,
+      email: user.email,
+      organizationId: membership?.organizationId,
+      role: membership?.role,
+    };
+  }
+
   private async issueTokens(
     tx: PrismaTransactionClient,
     user: { id: string; email: string; fullName: string },

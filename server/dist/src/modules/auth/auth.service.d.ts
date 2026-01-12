@@ -18,6 +18,12 @@ export declare class AuthService {
     logout(input: LogoutDto): Promise<{
         success: true;
     }>;
+    getMe(userId: string): Promise<{
+        userId: string;
+        email: string;
+        organizationId?: string;
+        role?: string;
+    }>;
     private issueTokens;
     private generateRefreshToken;
     private revokeToken;
