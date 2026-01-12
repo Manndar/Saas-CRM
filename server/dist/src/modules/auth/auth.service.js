@@ -146,6 +146,27 @@ let AuthService = AuthService_1 = class AuthService {
         }
         return { success: true };
     }
+    async getMe(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                memberships: {
+                    take: 1,
+                    orderBy: { createdAt: 'asc' },
+                },
+            },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const membership = user.memberships[0];
+        return {
+            userId: user.id,
+            email: user.email,
+            organizationId: membership?.organizationId,
+            role: membership?.role,
+        };
+    }
     async issueTokens(tx, user) {
         const payload = {
             sub: user.id,

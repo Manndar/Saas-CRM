@@ -26,24 +26,10 @@ function DashboardContent() {
     const router = useRouter();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    // const { data: user, isLoading } = useQuery<User>({
-    //     queryKey: ['user', 'me'],
-    //     queryFn: () => apiClient.getMe(),
-    // });
-    const [user, setUser] = useState<User | null>(null);
-    useEffect(() => {
-        fetchUser();
-    }, []);
-    const isLoading = user === null;
-    const fetchUser = async () => {
-        try {
-            const user = await apiClient.getMe();
-            setUser(user);
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        }
-    }
-
+    const { data: user, isLoading, error } = useQuery<User>({
+        queryKey: ['user', 'me'],
+        queryFn: () => apiClient.getMe(),
+    });
     const handleLogout = async () => {
         const tokens = getTokens();
         if (tokens.refreshToken) {
@@ -77,7 +63,26 @@ function DashboardContent() {
             </Box>
         );
     }
-    console.log("User", user);
+
+    if (error) {
+        return (
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                minHeight="100vh"
+            >
+                <Paper sx={{ p: 3 }}>
+                    <Typography variant="h6" color="error" gutterBottom>
+                        Error loading user data
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {error instanceof Error ? error.message : 'Unknown error'}
+                    </Typography>
+                </Paper>
+            </Box>
+        );
+    }
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
