@@ -12,7 +12,7 @@ import {
     Link,
     Alert,
 } from '@mui/material';
-import { apiClient } from '@/app/lib/api';
+import { authService } from '@/app/lib/auth';
 import { setTokens } from '@/app/lib/auth-store';
 
 export default function RegisterPage() {
@@ -30,7 +30,7 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            const response = await apiClient.register(
+            const response = await authService.register(
                 fullName,
                 email,
                 password,

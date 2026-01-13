@@ -19,7 +19,7 @@ import { Logout as LogoutIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 
 import { ProtectedRoute } from '@/app/components/protected-route';
-import { apiClient, type User } from '@/app/lib/api';
+import { authService, type User } from '@/app/lib/auth';
 import { getTokens, clearTokens } from '@/app/lib/auth-store';
 
 function DashboardContent() {
@@ -28,13 +28,13 @@ function DashboardContent() {
 
     const { data: user, isLoading, error } = useQuery<User>({
         queryKey: ['user', 'me'],
-        queryFn: () => apiClient.getMe(),
+        queryFn: () => authService.getMe(),
     });
     const handleLogout = async () => {
         const tokens = getTokens();
         if (tokens.refreshToken) {
             try {
-                await apiClient.logout(tokens.refreshToken);
+                await authService.logout(tokens.refreshToken);
             } catch (error) {
                 console.error('Logout error:', error);
             }

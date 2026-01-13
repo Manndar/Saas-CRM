@@ -12,7 +12,7 @@ import {
     Link,
     Alert,
 } from '@mui/material';
-import { apiClient } from '@/app/lib/api';
+import { authService } from '@/app/lib/auth';
 import { setTokens } from '@/app/lib/auth-store';
 
 export default function LoginPage() {
@@ -28,7 +28,7 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const response = await apiClient.login(email, password);
+            const response = await authService.login(email, password);
             setTokens({
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CircularProgress, Box } from '@mui/material';
 
 import { getTokens } from '@/app/lib/auth-store';
-import { apiClient } from '@/app/lib/api';
+import { authService } from '@/app/lib/auth';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -21,7 +21,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
             }
 
             try {
-                await apiClient.getMe();
+                await authService.getMe();
                 setIsAuthenticated(true);
             } catch {
                 router.push('/login');
