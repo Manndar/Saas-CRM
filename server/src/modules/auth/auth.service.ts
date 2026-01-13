@@ -96,6 +96,8 @@ export class AuthService {
       where: { email: input.email.toLowerCase() },
     });
 
+    // console.log("user", user);
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
