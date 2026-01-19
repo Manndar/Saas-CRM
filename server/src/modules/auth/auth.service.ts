@@ -1,6 +1,5 @@
 import {
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -21,8 +20,6 @@ const SALT_ROUNDS = 12;
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -31,29 +28,22 @@ export class AuthService {
 
   async register(input: RegisterDto): Promise<AuthTokens> {
     try {
-      this.logger.log(`Register attempt for email: ${input.email}`);
-
       const existing = await this.prisma.user.findUnique({
         where: { email: input.email.toLowerCase() },
       });
 
       if (existing) {
-        this.logger.warn(`Registration failed: Email already in use - ${input.email}`);
         throw new AppError('Email already in use', 409);
       }
 
-      this.logger.debug('Hashing password...');
       const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
 
-      this.logger.debug('Starting transaction...');
       return await this.prisma.$transaction(async (tx) => {
         const organizationName =
           input.organizationName ?? `${input.fullName}'s Organization`;
         
-        this.logger.debug(`Generating unique slug for: ${organizationName}`);
         const slug = await this.generateUniqueSlug(tx, organizationName);
 
-        this.logger.debug('Creating user...');
         const user = await tx.user.create({
           data: {
             email: input.email.toLowerCase(),
@@ -62,7 +52,6 @@ export class AuthService {
           },
         });
 
-        this.logger.debug('Creating organization...');
         const organization = await tx.organization.create({
           data: {
             name: organizationName,
@@ -70,7 +59,6 @@ export class AuthService {
           },
         });
 
-        this.logger.debug('Creating organization member...');
         await tx.organizationMember.create({
           data: {
             userId: user.id,
@@ -79,14 +67,9 @@ export class AuthService {
           },
         });
 
-        this.logger.debug('Issuing tokens...');
         return this.issueTokens(tx, user);
       });
     } catch (error) {
-      this.logger.error(
-        `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
       throw error;
     }
   }
