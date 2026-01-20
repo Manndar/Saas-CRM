@@ -12,10 +12,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_1 = require("../../prisma");
+const app_error_1 = require("../../common/errors/app-error");
 let OrganizationsService = class OrganizationsService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
+    }
+    async findAllOrganizations() {
+        try {
+            return await this.prisma.organization.findMany();
+        }
+        catch (error) {
+            throw new app_error_1.AppError('Failed to find all organizations', 500);
+        }
+    }
+    async findOrganizationById(id) {
+        try {
+            const organization = await this.prisma.organization.findUnique({ where: { id } });
+            if (!organization) {
+                throw new app_error_1.AppError('Organization not found', 404);
+            }
+            return organization;
+        }
+        catch (error) {
+            throw new app_error_1.AppError('Failed to find organization by id', 404);
+        }
+    }
+    async createOrganization(createOrganizationDto) {
+        try {
+            return await this.prisma.organization.create({ data: createOrganizationDto });
+        }
+        catch (error) {
+            throw new app_error_1.AppError('Failed to create organization', 400);
+        }
     }
 };
 exports.OrganizationsService = OrganizationsService;
