@@ -10,7 +10,6 @@ export declare class AuthService {
     private readonly prisma;
     private readonly jwtService;
     private readonly configService;
-    private readonly logger;
     constructor(prisma: PrismaService, jwtService: JwtService, configService: ConfigService);
     register(input: RegisterDto): Promise<AuthTokens>;
     login(input: LoginDto): Promise<AuthTokens>;

@@ -41,7 +41,6 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
@@ -53,11 +52,10 @@ const prisma_1 = require("../../prisma");
 const app_error_1 = require("../../common/errors/app-error");
 const REFRESH_TTL_DAYS = 7;
 const SALT_ROUNDS = 12;
-let AuthService = AuthService_1 = class AuthService {
+let AuthService = class AuthService {
     prisma;
     jwtService;
     configService;
-    logger = new common_1.Logger(AuthService_1.name);
     constructor(prisma, jwtService, configService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
@@ -65,22 +63,16 @@ let AuthService = AuthService_1 = class AuthService {
     }
     async register(input) {
         try {
-            this.logger.log(`Register attempt for email: ${input.email}`);
             const existing = await this.prisma.user.findUnique({
                 where: { email: input.email.toLowerCase() },
             });
             if (existing) {
-                this.logger.warn(`Registration failed: Email already in use - ${input.email}`);
                 throw new app_error_1.AppError('Email already in use', 409);
             }
-            this.logger.debug('Hashing password...');
             const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
-            this.logger.debug('Starting transaction...');
             return await this.prisma.$transaction(async (tx) => {
                 const organizationName = input.organizationName ?? `${input.fullName}'s Organization`;
-                this.logger.debug(`Generating unique slug for: ${organizationName}`);
                 const slug = await this.generateUniqueSlug(tx, organizationName);
-                this.logger.debug('Creating user...');
                 const user = await tx.user.create({
                     data: {
                         email: input.email.toLowerCase(),
@@ -88,14 +80,12 @@ let AuthService = AuthService_1 = class AuthService {
                         passwordHash,
                     },
                 });
-                this.logger.debug('Creating organization...');
                 const organization = await tx.organization.create({
                     data: {
                         name: organizationName,
                         slug,
                     },
                 });
-                this.logger.debug('Creating organization member...');
                 await tx.organizationMember.create({
                     data: {
                         userId: user.id,
@@ -103,12 +93,10 @@ let AuthService = AuthService_1 = class AuthService {
                         role: 'ADMIN',
                     },
                 });
-                this.logger.debug('Issuing tokens...');
                 return this.issueTokens(tx, user);
             });
         }
         catch (error) {
-            this.logger.error(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
             throw error;
         }
     }
@@ -233,7 +221,7 @@ let AuthService = AuthService_1 = class AuthService {
     }
 };
 exports.AuthService = AuthService;
-exports.AuthService = AuthService = AuthService_1 = __decorate([
+exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_1.PrismaService,
         jwt_1.JwtService,
